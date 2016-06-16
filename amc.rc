@@ -1,0 +1,30 @@
+#
+# Debug for myamc; uncomment to activate
+#
+$debug              = "true";
+
+#
+# name of the filter file:
+#
+$ini_file           = "filter2.ini";
+
+#
+# POP3 username, password and server
+#
+$USER               = 'username';
+$PW                 = 'password';
+$POP3HOST           = 'pop3.somewhere.org';
+$POP_DEBUG          = 1;
+
+#
+# SMTP configuration
+#
+$SMTP               = 'smtp.somewhere.org';
+$FROM               = 'my-amc@somewhere.org';
+$TO                 = 'recipient@somewhere.org';
+$ERROR_RECIPIENT    = 'admin@somewhere.org';
+
+#
+# loading the ini-file
+#
+$ini = new Config::IniFiles( -file => $ini_file);
