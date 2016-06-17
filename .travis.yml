@@ -4,7 +4,7 @@ perl:
 before_install:
   - "cpanm Mail::Sender"
   - "cpanm Config::IniFiles"
-  - "cpanm Archive::Zip"
+  - "cpanm Archive::Zip --force"
   - "cpanm Getopt::Long"
   - "cpanm Email::MIME"
   - "cpanm File::Basename"
