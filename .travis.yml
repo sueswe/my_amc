@@ -1,8 +1,6 @@
 language: perl
 perl:
-  - "5.22"
   - "5.20"
-  - "5.18"
 before_install:
   - "cpanm Mail::Sender"
   - "cpanm Config::IniFiles"
