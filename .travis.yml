@@ -9,7 +9,7 @@ before_install:
   - "cpanm Email::MIME"
   - "cpanm File::Basename"
   - "cpanm File::Path"
-  - "canm Net::POP3"
+  - "cpanm Net::POP3"
   - "cpanm Log::Log4perl"
 
 script: "perl -c my_auto_mail_client.pl"
