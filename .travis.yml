@@ -3,8 +3,19 @@ perl:
   - "5.22"
   - "5.20"
   - "5.18"
+before_install:
+  - "cpanm Mail::Sender"
+  - "cpanm Config::IniFiles"
+  - "cpanm Archive::Zip"
+  - "cpanm Getopt::Long"
+  - "cpanm Email::MIME"
+  - "cpanm File::Basename"
+  - "cpanm File::Path"
+  - "canm Net::POP3"
+  - "cpanm Log::Log4perl"
 
 script: "perl -c my_auto_mail_client.pl"
+
 
 notifications:
   recipients:
