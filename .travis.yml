@@ -1,0 +1,14 @@
+language: perl
+perl:
+  - "5.22"
+  - "5.20"
+  - "5.18"
+
+script: "perl -c my_auto_mail_client.pl"
+
+notifications:
+  recipients:
+    - werner.suess@itsv.at
+  email:
+    on_success: change
+    on_failure: always

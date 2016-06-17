@@ -1,4 +1,6 @@
 
+[![Build Status](https://travis-ci.org/sueswe/my_amc.svg?branch=master)](https://travis-ci.org/sueswe/my_amc)
+
 # My Auto Mail Client - Start actions via email.
 
 ## 0) Intro ##
@@ -22,6 +24,10 @@ Install the with
     nssm install myAMCD C:\strawberry\perl\bin\perl.exe C:\batch\Opcon\scripts\myAMC\myAMCd.pl C:\\batch\\Opcon\\scripts\\myAMC\\my_auto_mail_client.pl 60
 
 
+## 3) TODO ##
+
+* reporting errors to admin
+* save emailheader to emailfiles
 
 
 
