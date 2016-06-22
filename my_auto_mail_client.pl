@@ -1,6 +1,6 @@
-#!/usr/bin/perl
+#!perl
 
-my $VERSION = "0.2.0.0";
+my $VERSION = "0.2.1.0";
 
 ################################################################################
 #
@@ -18,8 +18,6 @@ my $VERSION = "0.2.0.0";
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ################################################################################
-
-print "<<< $0 , version $VERSION >>>\n";
 
 use warnings;
 use strict;
@@ -39,6 +37,7 @@ use Log::Log4perl qw(:easy);
 my $workDir = getcwd();
 my $heute = POSIX::strftime('%Y%m%d', localtime);
 my $logfile = $workDir . "//" . $heute . "-myamc.log";
+our $dateiName;
 
 ## CONFIGURATIONSBLOCK Beginn ##################################################
 $|=1;
@@ -49,7 +48,7 @@ our (   $ini_file, $USER, $PW, $POP3HOST, $POP_DEBUG,
     );
 
 my $configFile = 'amc.rc';
-
+my $timestamp = POSIX::strftime('%Y%m%d-%H%M%S', localtime);
 ## CONFIGURATIONSBLOCK Ende ####################################################
 
 for my $file ("$workDir//$configFile")
@@ -72,12 +71,14 @@ Log::Log4perl->easy_init(
 {
     level => $logLevel,
     file => ">> $logfile",
-    file => 'stdout',
+    ###file => 'stdout',
     mode => "append",
     layout => $logLayout,
     }
 );
 my $log = get_logger();
+
+INFO("\n my_auto_mail_client, version $VERSION");
 
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
@@ -110,21 +111,28 @@ if ( $num_messages =~ m/0E0/ig ) {
 
 # for each email:
 for my $i ( 1 .. $num_messages ) {
-    print "\n";INFO("processing message $i ");
+    INFO("processing message $i ");
     my $aref = $pop->get($i);
     my $message = $_;
     my $em = Email::MIME->new( join '', @$aref );
-    
+
     #
     # find Subject:
     #
-    my $subject;
+    my ($subject,$from);
     my $headpointer = $pop->top($i);
     foreach my $line (@{$headpointer}) {
         chomp($line);
-        if ( $line =~ m/subject/ig ) { $subject = $line; }
+        if ( $line =~ m/subject/ig ) { 
+            $subject = $line; 
+        } elsif ( $line =~ m/^From:/ig ) {
+            $from = $line;
+            DEBUG("From: $from");
+        }
     }
     INFO("$subject");
+    $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
+    $subject = substr($subject,0,15);
     
     #
     # read ini:
@@ -136,7 +144,7 @@ for my $i ( 1 .. $num_messages ) {
     #
     foreach (@sections) {
         my $cur_sec = $_;
-        INFO("### SECTION IN INI: $cur_sec ##################################");
+        INFO("# SECTION IN INI: $cur_sec #");
         
         my $ini_subject = $ini->val($_,'subject');
         INFO("INI-Subject: $ini_subject");
@@ -154,13 +162,25 @@ for my $i ( 1 .. $num_messages ) {
         if ($subject =~ m/\Q$ini_subject/ig ) {
             DEBUG("Subject found in INI file");
             
+            #
+            # saving the From line:
+            #
+            $dateiName = "\\" . $timestamp . "_" . $subject .".txt";
+            DEBUG("Saving From to filename " . $bodySaveDir . $dateiName);
+            open(FH,"> ".$bodySaveDir.$dateiName) || ERROR("Can not write FH $bodySaveDir$dateiName : $!");
+            print FH "$from \n";
+            close(FH);
+
+            #
+            # saving the Body:
+            #
             my $bodyFile;
             if ( ! defined $bodySaveDir ) {
                 ERROR("storage location emails not configured in ini-file.");
                 exit(2);
             } else {
                 INFO("storage location for emails: $bodySaveDir");
-                $bodyFile = save_body($em,$bodySaveDir,$subject);
+                $bodyFile = save_body($em,$bodySaveDir);
             }
             
             
@@ -199,7 +219,7 @@ for my $i ( 1 .. $num_messages ) {
     #
     INFO "Deleting message $i ";
     $pop->delete($i) || ERROR("Cannot delete message!") && die("ERROR: Cannot delete message!");
-    print "\n";
+    
     
 } #for email $i
 
@@ -219,16 +239,16 @@ $pop->quit();
 ### SUBROUTINEN ################################################################
 
 sub save_body {
-    my ($em,$wo,$subj) = @_;
-    DEBUG("$em, $wo, $subj");
+    my ($em,$wo) = @_;
+    
+    DEBUG("$em, $wo");
     make_path("$wo");
-    $subj =~ s/\s//ig; $subj =~ s/subject//ig; $subj =~ s/://ig; $subj =~ s/\?//ig;
-    $subj = substr($subj,0,15);
-    my $timestamp = POSIX::strftime('%Y%m%d-%H%M%S', localtime);
+    
     for ( my @parts = $em->parts ) {
         my $CONTYP = $_->content_type;
-
         DEBUG("Content-type: $CONTYP");
+
+        
         if ( $_->content_type =~ m(^multipart/alternative|^multipart/related)i ) {
             my @bodyContent;
             my @subp = $_->subparts;
@@ -238,15 +258,15 @@ sub save_body {
                     push(@bodyContent,$hash{$k});
                 }
             }
-            #$wo = $wo . "\\" . $timestamp . "_" . $subj ;
-            open(FH,">> $wo" . "\\" . $timestamp . "_" . $subj ) || WARN("Cannot write file $wo : $!");
-              DEBUG("saving body to: $wo". "\\" . $timestamp . "_" . $subj);
+            
+            open(FH,">> $wo" . $dateiName ) || WARN("Cannot write file $wo : $!");
+              DEBUG("saving body to: $wo". $dateiName);
               print FH "@bodyContent";
             close(FH);
         } elsif ( $_->content_type =~ m(^text/plain|^text/html)i ) {
             my  @body = $_->body;
-            open(FH,">> $wo" . "\\" . $timestamp . "_" . $subj ) || WARN("Cannot write file $wo : $!");
-              DEBUG("saving body to: $wo". "\\" . $timestamp . "_" . $subj);
+            open(FH,">> $wo" . $dateiName ) || WARN("Cannot write file $wo : $!");
+              DEBUG("saving body to: $wo". $dateiName);
               print FH "@body";
             close(FH);
         } else {
@@ -254,7 +274,7 @@ sub save_body {
         }
     }
     # returnvalue is body-file:
-    $wo .= "\\" . $timestamp . "_" . $subj ;
+    $wo .= $dateiName;
     DEBUG("returnvalue = $wo");
     return($wo);
 }
@@ -320,7 +340,7 @@ sub start_process_action {
         INFO("$c: $out");
         $c++;
     }
-    close(FH) || WARN("error while closing filehandle: $!") && return(4);
+    close(FH) || WARN("error while closing process-filehandle ($what) $!");
     my $RTC = $? >> 8;
     if ( $RTC != 0 ) { ERROR("process returned with rtc = $RTC"); }
     return($RTC);
