@@ -1,24 +1,23 @@
--language: 
--    perl
--perl:
--  - "5.20"
--before_install:
--  #- "git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers"
--  #- "source ~/travis-perl-helpers/init --auto"
--  - "cpanm Mail::Sender"
--  - "cpanm Config::IniFiles"
--  - "cpanm Archive::Zip --force"
--  - "cpanm Getopt::Long"
--  - "cpanm Email::MIME"
--  - "cpanm File::Basename"
--  - "cpanm File::Path"
--  - "cpanm Net::POP3"
--  - "cpanm Log::Log4perl"
--
--
--notifications:
--  recipients:
--    - werner.suess@itsv.at
--  email:
--    on_success: change
--    on_failure: always
+language: 
+    perl:
+  - "5.20"
+before_install:
+  #- "git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers"
+  #- "source ~/travis-perl-helpers/init --auto"
+  - "cpanm Mail::Sender"
+  - "cpanm Config::IniFiles"
+  - "cpanm Archive::Zip --force"
+  - "cpanm Getopt::Long"
+  - "cpanm Email::MIME"
+  - "cpanm File::Basename"
+  - "cpanm File::Path"
+  - "cpanm Net::POP3"
+  - "cpanm Log::Log4perl"
+
+
+notifications:
+  recipients:
+    - werner.suess@itsv.at
+  email:
+    on_success: change
+    on_failure: always
