@@ -2,8 +2,8 @@ language:
   - perl
   - "5.20"
 before_install:
-  - "git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers"
-  - "source ~/travis-perl-helpers/init --auto"
+  #- "git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers"
+  #- "source ~/travis-perl-helpers/init --auto"
   - "cpanm Mail::Sender"
   - "cpanm Config::IniFiles"
   - "cpanm Archive::Zip --force"
