@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/sueswe/my_amc.svg?branch=master)](https://travis-ci.org/sueswe/my_amc)
+[![Build Status](https://travis-ci.org/sueswe/my_amc.svg?branch=travis)](https://travis-ci.org/sueswe/my_amc)
 
 # My Auto Mail Client - Start actions via email.
 
