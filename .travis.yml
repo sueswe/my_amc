@@ -1,5 +1,5 @@
-language: 
-  - perl
+language: perl
+perl:
   - "5.20"
 before_install:
   #- "git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers"
