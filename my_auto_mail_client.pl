@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.1.0";
+my $VERSION = "0.2.2.0";
 
 ################################################################################
 #
@@ -108,6 +108,8 @@ if ( $num_messages =~ m/0E0/ig ) {
 }
 
 
+my $notfound_counter;
+my @notfound_email;
 
 # for each email:
 for my $i ( 1 .. $num_messages ) {
@@ -119,7 +121,7 @@ for my $i ( 1 .. $num_messages ) {
     #
     # find Subject:
     #
-    my ($subject,$from);
+    my ($subject,$from,$orig_subject);
     my $headpointer = $pop->top($i);
     foreach my $line (@{$headpointer}) {
         chomp($line);
@@ -130,7 +132,7 @@ for my $i ( 1 .. $num_messages ) {
             DEBUG("From: $from");
         }
     }
-    INFO("$subject");
+    INFO("$subject"); $orig_subject = $subject;
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
     $subject = substr($subject,0,15);
     
@@ -138,7 +140,7 @@ for my $i ( 1 .. $num_messages ) {
     # read ini:
     #
     my @sections = $ini->Sections();
-    my $notfound_counter = 0;
+    $notfound_counter = 0;
     #
     # for each ini section:
     #
@@ -214,6 +216,12 @@ for my $i ( 1 .. $num_messages ) {
         }
     } # foreach section
     
+    if ( $notfound_counter > 0 ) {
+        push(@notfound_email,"$from");
+        push(@notfound_email," ; ");
+        push(@notfound_email,"$orig_subject"); 
+    }
+
     #
     # delete email
     #
@@ -223,10 +231,6 @@ for my $i ( 1 .. $num_messages ) {
     
 } #for email $i
 
-#
-# if $notfound_counter > 0 
-#
-
 
 #
 # close POP connection:
@@ -234,9 +238,33 @@ for my $i ( 1 .. $num_messages ) {
 $pop->quit();
 
 
+# 
+# no filter matched:
+#
+if ( $notfound_counter > 0 ) {
+    DEBUG("notfound_counter = $notfound_counter");
+    inform_admin("The email was not processed by any filter [@notfound_email]")
+}
 
 
-### SUBROUTINEN ################################################################
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+#
+#
+#                       SUBROUTINEN 
+#
+#
+###############################################################################
 
 sub save_body {
     my ($em,$wo) = @_;
