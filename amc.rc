@@ -25,6 +25,6 @@ $TO                 = 'recipient@somewhere.org';
 $ERROR_RECIPIENT    = 'admin@somewhere.org';
 
 #
-# loading the ini-file
+# loading the ini-file. Leave this section unchanged unless you know what u r doing.
 #
 $ini = new Config::IniFiles( -file => $ini_file);
