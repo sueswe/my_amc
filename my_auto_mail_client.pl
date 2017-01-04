@@ -40,7 +40,7 @@ my $logfile = $workDir . "//" . $heute . "-myamc.log";
 our $dateiName;
 
 ## CONFIGURATIONSBLOCK Beginn ##################################################
-$|=1;
+$|=1; #unbuffered
 our (   $ini_file, $USER, $PW, $POP3HOST, $POP_DEBUG,
         $pop, $ini, @filename_array, @subject,
         $SMTP, $FROM, $TO, $ERROR_RECIPIENT,
@@ -389,10 +389,13 @@ sub connect_pop {
     # Verbindung zum POP Server aufbauen
     INFO "Connecting to server: $POP3HOST";
     $pop = Net::POP3->new($POP3HOST);
-    ERROR("Couldn't connect to the server \"$POP3HOST\" , $! !\n")
-        && die "Couldn't connect to the server \"$POP3HOST\" , $! !\n"
-        && mailit("Couldn't connect to the server \'$POP3HOST\'","$!")
-        unless $pop;
+    #die("Couldn't connect to the server \"$POP3HOST\" , $! !\n")   unless $pop;
+    if ( ! defined $pop ) {
+      print "FATAL ERROR: $! (Check logfile!)\n";
+      FATAL("Couldn't connect to the server \"$POP3HOST\" $! !");
+      exit(103);
+
+    }
 
     # Login to POP server
     INFO "Login as user:        $USER";
