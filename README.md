@@ -20,15 +20,31 @@ so not every sender is allowed to run every command.
 
 ## 2) Installation ##
 
+### 2.0) Requirements
+
+You need following perl-modules:
+
+  * Log::Log4perl
+  * Mail::Sender
+  * Config::IniFiles
+  * Archive::Zip
+  * Getopt::Long
+  * Email::MIME
+  * File::Basename
+  * File::Path
+  * File::Copy
+  * Net::POP3
+
+Install them via cpan.
+
+
 ### 2.1) Windows ###
 
 For the use as a windows service I wrote a myAMCd - script.
-Install the with
-* nssm ([http://nssm.cc](http://nssm.cc)):
+Install the with nssm ([http://nssm.cc](http://nssm.cc)):
 
-
-    nssm install myAMCD C:\strawberry\perl\bin\perl.exe C:\batch\Opcon\scripts\myAMC\myAMCd.pl C:\\batch\\Opcon\\scripts\\myAMC\\my_auto_mail_client.pl 60
-
+    nssm install myAMCD C:\strawberry\perl\bin\perl.exe
+      C:\batch\Opcon\scripts\myAMC\myAMCd.pl C:\\batch\\Opcon\\scripts\\myAMC\\my_auto_mail_client.pl 60
 
 So, what is going on here: myAMCd will start my_auto_mail_client.pl every sixty seconds.
 nssm is really awesome, so please support it.
@@ -39,7 +55,7 @@ This example refers to a strwaberry installation.
 
 Install it as a Linux daemon, therefor you may write an init-script. Or just fire it up with:
 
-    perl /path/to/myAMDc.pl /path/to/my_auto_mail_client.pl 60
+    perl /path/to/myAMDc.pl /path/to/my_auto_mail_client.pl 60 &
 
 ## 3.0) Configuration ##
 
