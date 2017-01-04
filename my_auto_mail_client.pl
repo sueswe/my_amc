@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.2.0";
+my $VERSION = "0.2.3.1";
 
 ################################################################################
 #
@@ -83,10 +83,10 @@ INFO("\n my_auto_mail_client, version $VERSION");
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
-if (! -e $ini_file ) { 
+if (! -e $ini_file ) {
     ERROR("ini-File not found!");
     inform_admin("ini-File not found!");
-    exit(2) 
+    exit(2)
 } else {
     DEBUG "ini-File found.";
 }
@@ -125,8 +125,8 @@ for my $i ( 1 .. $num_messages ) {
     my $headpointer = $pop->top($i);
     foreach my $line (@{$headpointer}) {
         chomp($line);
-        if ( $line =~ m/subject/ig ) { 
-            $subject = $line; 
+        if ( $line =~ m/subject/ig ) {
+            $subject = $line;
         } elsif ( $line =~ m/^From:/ig ) {
             $from = $line;
             DEBUG("From: $from");
@@ -135,7 +135,7 @@ for my $i ( 1 .. $num_messages ) {
     INFO("$subject"); $orig_subject = $subject;
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
     $subject = substr($subject,0,15);
-    
+
     #
     # read ini:
     #
@@ -147,23 +147,33 @@ for my $i ( 1 .. $num_messages ) {
     foreach (@sections) {
         my $cur_sec = $_;
         INFO("# SECTION IN INI: $cur_sec #");
-        
+
         my $ini_subject = $ini->val($_,'subject');
         INFO("INI-Subject: $ini_subject");
 
         my $bodySaveDir = $ini->val($_,'body_save');
-        
+
         my $attachment_dir = $ini->val($_,'attachment_save_dir');
-        
+
         my $unzip_yn = $ini->val($_,'attachment_unzip');
-        
-        
+
+
         #
         # found ini entry:
         #
         if ($subject =~ m/\Q$ini_subject/ig ) {
             DEBUG("Subject found in INI file");
-            
+
+            #
+            # is your emailadress allowd?
+            #
+            my $allowed = $ini->val($_,'from');
+            if ( $from =~ m/\@$allowed/ig ) {
+                DEBUG("Emailadress $from granted.");
+            } else {
+                DEBUG("Emailadress $from not allowed.");
+                exit(4);
+            }
             #
             # saving the From line:
             #
@@ -184,8 +194,8 @@ for my $i ( 1 .. $num_messages ) {
                 INFO("storage location for emails: $bodySaveDir");
                 $bodyFile = save_body($em,$bodySaveDir);
             }
-            
-            
+
+
             my $anhang;
             if ( ! defined $attachment_dir ) {
                 DEBUG("Do not save attachments.");
@@ -193,16 +203,16 @@ for my $i ( 1 .. $num_messages ) {
                 INFO("storage location for attachments: $attachment_dir");
                 $anhang = save_attachment($em,$attachment_dir);
             }
-            
-            
+
+
             if ( ! defined $unzip_yn ) {
-                DEBUG("Do not unzip zip-files"); 
+                DEBUG("Do not unzip zip-files");
             } else {
                 DEBUG("Unzip zip-files: $unzip_yn");
                 unzip_attachment("$anhang","$attachment_dir");
             }
-            
-            
+
+
             my @action = $ini->val($cur_sec,'action');
             DEBUG("fireing up: @action $bodyFile");
             my $externReturncode = start_process_action("@action","$bodyFile");
@@ -215,11 +225,11 @@ for my $i ( 1 .. $num_messages ) {
             DEBUG("notfound_counter: $notfound_counter");
         }
     } # foreach section
-    
+
     if ( $notfound_counter > 0 ) {
         push(@notfound_email,"$from");
         push(@notfound_email," ; ");
-        push(@notfound_email,"$orig_subject"); 
+        push(@notfound_email,"$orig_subject");
     }
 
     #
@@ -227,8 +237,8 @@ for my $i ( 1 .. $num_messages ) {
     #
     INFO "Deleting message $i ";
     $pop->delete($i) || ERROR("Cannot delete message!") && die("ERROR: Cannot delete message!");
-    
-    
+
+
 } #for email $i
 
 
@@ -238,7 +248,7 @@ for my $i ( 1 .. $num_messages ) {
 $pop->quit();
 
 
-# 
+#
 # no filter matched:
 #
 if ( $notfound_counter > 0 ) {
@@ -261,22 +271,22 @@ if ( $notfound_counter > 0 ) {
 ###############################################################################
 #
 #
-#                       SUBROUTINEN 
+#                       SUBROUTINEN
 #
 #
 ###############################################################################
 
 sub save_body {
     my ($em,$wo) = @_;
-    
+
     DEBUG("$em, $wo");
     make_path("$wo");
-    
+
     for ( my @parts = $em->parts ) {
         my $CONTYP = $_->content_type;
         DEBUG("Content-type: $CONTYP");
 
-        
+
         if ( $_->content_type =~ m(^multipart/alternative|^multipart/related)i ) {
             my @bodyContent;
             my @subp = $_->subparts;
@@ -286,7 +296,7 @@ sub save_body {
                     push(@bodyContent,$hash{$k});
                 }
             }
-            
+
             open(FH,">> $wo" . $dateiName ) || WARN("Cannot write file $wo : $!");
               DEBUG("saving body to: $wo". $dateiName);
               print FH "@bodyContent";
@@ -438,9 +448,9 @@ sub mailit {
 sub usage {
     print <<EOF;
  Usage:
-  $0 
-  
-  Saves Emails as text, saves the attachments and starts an 
+  $0
+
+  Saves Emails as text, saves the attachments and starts an
   postprocess, with the txt-file as parameter.
 
   Configfile: $configFile
@@ -448,8 +458,3 @@ sub usage {
 
 EOF
 }
-
-
-
-
-
