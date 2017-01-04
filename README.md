@@ -14,6 +14,9 @@ Looks for an email on a POP3-server, and starts an action when the
 subject of the email fits to a keyword defined in the filter.ini-file.
 It always saves the email (and deletes it on the POP3-Server).
 It's also possible to save attachments and unzip them.
+You can restrict actions in the filter.ini file to emailaddresses,
+so not every sender is allowed to run every command.
+
 
 ## 2) Installation (e.g. Windows Server 2008) ##
 
@@ -23,11 +26,6 @@ Install the with
 
     nssm install myAMCD C:\strawberry\perl\bin\perl.exe C:\batch\Opcon\scripts\myAMC\myAMCd.pl C:\\batch\\Opcon\\scripts\\myAMC\\my_auto_mail_client.pl 60
 
-
-## 3) TODO ##
-
-* reporting errors to admin
-* save emailheader to emailfiles
 
 
 
