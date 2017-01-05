@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.5.5";
+my $VERSION = "0.2.5.6";
 
 ################################################################################
 #
@@ -245,10 +245,11 @@ for my $i ( 1 .. $num_messages ) {
         push(@notfound_email," ; ");
         push(@notfound_email,"$orig_subject");
 
-        #DEBUG("There was no action triggert for the email from: $from");
-        #mailit("Problem: no action found for your email","Hello, \
-        #i was unable to find an action for \
-        #your email with subject: $subject",$from);
+        DEBUG("There was no action triggert for the email from: $from");
+        mailit("Problem: no action found for your email","Hello, \
+        i was unable to find an action for \
+        your email with subject: $subject",$from);
+        DEBUG("@notfound_email");
 
     }
 
