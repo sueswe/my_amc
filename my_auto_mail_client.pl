@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.4.0";
+my $VERSION = "0.2.5.5";
 
 ################################################################################
 #
@@ -40,7 +40,7 @@ my $logfile = $workDir . "//" . $heute . "-myamc.log";
 our $dateiName;
 
 ## CONFIGURATIONSBLOCK Beginn ##################################################
-$|=1;
+$|=1; #unbuffered
 our (   $ini_file, $USER, $PW, $POP3HOST, $POP_DEBUG,
         $pop, $ini, @filename_array, @subject,
         $SMTP, $FROM, $TO, $ERROR_RECIPIENT,
@@ -57,6 +57,8 @@ for my $file ("$workDir//$configFile")
         warn "couldn't parse $file: $@" if $@;
         warn "couldn't do $file: $!"    unless defined $return;
         warn "couldn't run $file"       unless $return;
+    } else {
+        print("$file loaded.\n");
     }
 }
 
@@ -84,11 +86,11 @@ chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
 if (! -e $ini_file ) {
-    ERROR("ini-File not found!");
+    ERROR("ini-file not found!");
     inform_admin("ini-File not found!");
     exit(2)
 } else {
-    DEBUG "ini-File found.";
+    DEBUG "ini-file found.";
 }
 
 GetOptions (
@@ -106,7 +108,6 @@ if ( $num_messages =~ m/0E0/ig ) {
 } else {
     INFO "Messages: $num_messages";
 }
-
 
 my $notfound_counter;
 my @notfound_email;
@@ -135,7 +136,7 @@ for my $i ( 1 .. $num_messages ) {
     INFO("$subject"); $orig_subject = $subject;
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
     $subject = substr($subject,0,15);
-
+    DEBUG("subject cut: $subject");
     #
     # read ini:
     #
@@ -146,10 +147,10 @@ for my $i ( 1 .. $num_messages ) {
     #
     foreach (@sections) {
         my $cur_sec = $_;
-        INFO("~~~ Section in INI: $cur_sec ~~~");
+        DEBUG("INI-section: $cur_sec ");
 
         my $ini_subject = $ini->val($_,'subject');
-        INFO("INI-Subject: $ini_subject");
+        INFO("INI-subject: $ini_subject");
 
         my $bodySaveDir = $ini->val($_,'body_save');
 
@@ -167,14 +168,26 @@ for my $i ( 1 .. $num_messages ) {
             #
             # is your emailadress allowd?
             #
-            my $allowed = $ini->val($_,'from');
-            if ( $from =~ m/\@$allowed/ig ) {
-                DEBUG("Emailadress $from granted.");
-            } else {
-                ERROR("Emailadress $from not allowed.");
+            my $a = $ini->val($_,'from');
+            my @alloweds = split(/,|;| /,$a);
+            DEBUG("Allowed are: @alloweds");
+            my $granted = 0;
+            foreach my $allowed (@alloweds) {
+                if ( $from =~ m/\@$allowed/ig ) {
+                    DEBUG("Emailaddress \'$from\' granted.");
+                    $granted = 1;
+                }
+                #else {
+                #    ERROR("Emailaddress \'$from\' not allowed.");
+                #    mailit("Forbidden","You are not allowed to trigger this action.",$from);
+                #}
+            } #foreach
+            if ($granted == 0 ) {
+                ERROR("Emailaddress \'$from\' not allowed.");
                 mailit("Forbidden","You are not allowed to trigger this action.",$from);
                 last;
             }
+
             #
             # saving the From line:
             #
@@ -231,6 +244,12 @@ for my $i ( 1 .. $num_messages ) {
         push(@notfound_email,"$from");
         push(@notfound_email," ; ");
         push(@notfound_email,"$orig_subject");
+
+        #DEBUG("There was no action triggert for the email from: $from");
+        #mailit("Problem: no action found for your email","Hello, \
+        #i was unable to find an action for \
+        #your email with subject: $subject",$from);
+
     }
 
     #
@@ -253,8 +272,8 @@ $pop->quit();
 # no filter matched:
 #
 if ( $notfound_counter > 0 ) {
-    DEBUG("notfound_counter = $notfound_counter");
-    inform_admin("The email was not processed by any filter [@notfound_email]")
+    DEBUG("notfound_counter = " . $notfound_counter  );
+    #inform_admin("The email was not processed by any filter [@notfound_email]")
 }
 
 
@@ -389,10 +408,13 @@ sub connect_pop {
     # Verbindung zum POP Server aufbauen
     INFO "Connecting to server: $POP3HOST";
     $pop = Net::POP3->new($POP3HOST);
-    ERROR("Couldn't connect to the server \"$POP3HOST\" , $! !\n")
-        && die "Couldn't connect to the server \"$POP3HOST\" , $! !\n"
-        && mailit("Couldn't connect to the server \'$POP3HOST\'","$!")
-        unless $pop;
+    #die("Couldn't connect to the server \"$POP3HOST\" , $! !\n")   unless $pop;
+    if ( ! defined $pop ) {
+      print "FATAL ERROR: $! (Check logfile!)\n";
+      FATAL("Couldn't connect to the server \"$POP3HOST\" $! !");
+      exit(103);
+
+    }
 
     # Login to POP server
     INFO "Login as user:        $USER";
