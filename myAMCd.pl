@@ -23,38 +23,61 @@ use File::Basename;
 use POSIX 'strftime';
 use Cwd;
 
-my $LOG_DIR = getcwd();
-my $heute   = POSIX::strftime('%Y%m%d', localtime);
-my $logfile = $LOG_DIR . "//" . $heute . "-myAMCdaemon.log";
+my $heute = POSIX::strftime('%Y%m%d', localtime);
+my $log;
+my $logfile;
 
-Log::Log4perl->easy_init(
-{
-    # levels from low to high:
-    level => $DEBUG,
-    #level => $INFO,
-    #level => $WARN,
-    #level => $ERROR,
-    #level => $FATAL,
-    file => ">> $logfile",
-    #file => 'stdout',
-    mode => "append",
-    layout => "%d %p> %m%n",
+sub start_logging {
+    my ($LOG_DIR) = @_;
+    if ( ! defined $LOG_DIR ) {
+        print "I am missing the logdir. \n";
+        exit(4);
     }
-);
-my $log = get_logger;
+    $logfile = $LOG_DIR . "//" . $heute . "-myAMCdaemon.log";
+    Log::Log4perl->easy_init(
+    {
+        # levels from low to high:
+        level => $DEBUG,
+        #level => $INFO,
+        #level => $WARN,
+        #level => $ERROR,
+        #level => $FATAL,
+        file => ">> $logfile",
+        #file => 'stdout',
+        mode => "append",
+        layout => "%d %p> %m%n",
+        }
+    );
+    $log = get_logger;
+    return(1);
+}
+
+
+###############################################################################
+# __MAIN __
+###############################################################################
+
 
 if ( ! defined $ARGV[0] || ! defined $ARGV[1] ) {
-    ERROR "Missing argument";
+    print "Missing argument. \n";
     usage() && exit(1);
 }
 
+
 # The Perl Executeable (not even for perl2exe):
 my $perl = $^X;
-INFO("Perl: $perl");
+print("Perl: \'$perl\' \n");
+
 
 # what should be executed:
 my $daemon = "$ARGV[0]";
 my $WORK_DIR = dirname("$daemon");
+
+#
+# Begin logging to logfile
+#
+start_logging($WORK_DIR);
+
 chdir("$WORK_DIR");
 INFO("WORKDIR: $WORK_DIR");
 
@@ -68,10 +91,15 @@ if ( defined $ARGV[2] ) {
 }
 
 if (! -e $daemon) {
-    ERROR("Program \'$daemon\' not found");
+    print("Program \'$daemon\' not found \n");
     exit(2);
 }
 
+###############################################################################
+# begin of endless loop.
+# from here now 
+# (e.g.) nssm starts and stops us.
+###############################################################################
 
 while(1) {
     $log->info("Awaking");
