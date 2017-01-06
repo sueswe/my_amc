@@ -1,6 +1,6 @@
 #!perl
 
-# Daemon-Script for myAMC.pl 
+# Daemon-Script for myAMC.pl
 
 # Copyright (C) 2011-2016  Werner Süß
 # This program is free software: you can redistribute it and/or modify
@@ -23,9 +23,9 @@ use File::Basename;
 use POSIX 'strftime';
 use Cwd;
 
-my $LOG_DIR = cwd();
+my $LOG_DIR = getcwd();
 my $heute   = POSIX::strftime('%Y%m%d', localtime);
-my $logfile = $LOG_DIR."\\".$heute."_myAMCdaemon.log";
+my $logfile = $LOG_DIR . "//" . $heute . "-myAMCdaemon.log";
 
 Log::Log4perl->easy_init(
 {
@@ -45,7 +45,7 @@ my $log = get_logger;
 
 if ( ! defined $ARGV[0] || ! defined $ARGV[1] ) {
     ERROR "Missing argument";
-    usage() && exit(1); 
+    usage() && exit(1);
 }
 
 # The Perl Executeable (not even for perl2exe):
@@ -63,8 +63,8 @@ my $intervall = "$ARGV[1]";
 
 # optional: argument list for $daemon
 my @arglist;
-if ( defined $ARGV[2] ) { 
-    @arglist = "$ARGV[2]"; 
+if ( defined $ARGV[2] ) {
+    @arglist = "$ARGV[2]";
 }
 
 if (! -e $daemon) {
@@ -88,7 +88,7 @@ while(1) {
 
 
 ############################################################################
-sub usage 
+sub usage
 ############################################################################
 {
     print "\nUsage:\n";
@@ -97,4 +97,3 @@ sub usage
     print "    myAMCd.pl /usr/bin/ls 60 -l -t -r\n";
     print "    (runs \'ls -l -t -r\' every 60 seconds)\n";
 }
-

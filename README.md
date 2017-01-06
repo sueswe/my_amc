@@ -49,7 +49,7 @@ Install the with nssm ([http://nssm.cc](http://nssm.cc)):
 So, what is going on here: myAMCd will start my_auto_mail_client.pl every sixty seconds.
 nssm is really awesome, so please support it.
 It installs perl with the command line options as an service.
-This example refers to a strwaberry installation.
+This example refers to a strawberry installation.
 
 ### 2.1) Linux ###
 
@@ -61,13 +61,20 @@ Install it as a Linux daemon, therefor you may write an init-script. Or just fir
 
 ### 3.1) amc.rc ###
 
-Section One: set debuglevel to 'true' or 'false'.
+The configuration file is always amc.rc . It has to be
+located in the current directory.
+If you want to change the name and/or the name of the
+configuration file you have to make a change in
+the my_auto_mail_client.pl file.
 
-Section Two: the name of your filer.ini file.
 
-Section Three: POP3 server settings.
+* Section One: set debuglevel to 'true' or 'false'.
 
-Section Four: SMTPD server settings.
+* Section Two: the name of your filer.ini file.
+
+* Section Three: POP3 server settings.
+
+* Section Four: SMTPD server settings.
 
 And that's it.
 
