@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.5.6";
+my $VERSION = "0.2.6.0";
 
 ################################################################################
 #
@@ -41,7 +41,7 @@ our $dateiName;
 
 ## CONFIGURATIONSBLOCK Beginn ##################################################
 $|=1; #unbuffered
-our (   $ini_file, $USER, $PW, $POP3HOST, $POP_DEBUG,
+our (   $ini_dir, $master_ini, $USER, $PW, $POP3HOST, $POP_DEBUG,
         $pop, $ini, @filename_array, @subject,
         $SMTP, $FROM, $TO, $ERROR_RECIPIENT,
         $debug,
@@ -51,6 +51,7 @@ my $configFile = 'amc.rc';
 my $timestamp = POSIX::strftime('%Y%m%d-%H%M%S', localtime);
 ## CONFIGURATIONSBLOCK Ende ####################################################
 
+# This loads also the master.ini file:
 for my $file ("$workDir//$configFile")
 {
     unless (my $return = do $file) {
@@ -73,7 +74,7 @@ Log::Log4perl->easy_init(
 {
     level => $logLevel,
     file => ">> $logfile",
-    ###file => 'stdout',
+    file => 'stdout',
     mode => "append",
     layout => $logLayout,
     }
@@ -85,13 +86,27 @@ INFO("\n my_auto_mail_client, version $VERSION");
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
-if (! -e $ini_file ) {
-    ERROR("ini-file not found!");
-    inform_admin("ini-File not found!");
-    exit(2)
-} else {
-    DEBUG "ini-file found.";
+# ini-file is already loaded...but we check it anyway
+#if (! -e $ini_file ) {
+#    ERROR("ini-file not found!");
+#    inform_admin("ini-File not found!");
+#    exit(2)
+#} else {
+#    DEBUG "ini-file found.";
+#}
+
+my @iniFiles = glob($ini_dir . "//" . "*.ini");
+DEBUG("Ini-files: @iniFiles");
+my $ic=1;
+foreach my $i_file (@iniFiles) {
+    my $overlay = Config::IniFiles->new(-file => "$i_file",
+            -import => $ini);
+    $ic += 1;
 }
+INFO("Imported $ic ini-files.");
+my @iniSections = $ini->Sections; my $s = @iniSections;
+INFO("$s sections loaded.");
+
 
 GetOptions (
     'help|?'            => \my $help,
@@ -140,6 +155,7 @@ for my $i ( 1 .. $num_messages ) {
     #
     # read ini:
     #
+
     my @sections = $ini->Sections();
     $notfound_counter = 0;
     #
@@ -478,7 +494,6 @@ sub usage {
   postprocess, with the txt-file as parameter.
 
   Configfile: $configFile
-  INI-file:   $ini_file
 
 EOF
 }
