@@ -74,7 +74,7 @@ Log::Log4perl->easy_init(
 {
     level => $logLevel,
     file => ">> $logfile",
-    file => 'stdout',
+    #file => 'stdout',
     mode => "append",
     layout => $logLayout,
     }
@@ -98,14 +98,16 @@ my $secret_full_ini = '.fullini';
 
 open(SINI, "> $secret_full_ini") or die("FATAL: Cannot write $secret_full_ini : $! \n");
 
-    foreach my $i_file (@iniFiles) {
-        open(I, "< $i_file") or WARN("Cannot read $i_file : $!");
-        while(<I>) {
-            print SINI "$_ \n";
+    if ( @iniFiles != 0 ) {
+        foreach my $i_file (@iniFiles) {
+            open(I, "< $i_file") or WARN("Cannot read $i_file : $!");
+            while(<I>) {
+                print SINI "$_ \n";
+            }
+            close(I);
         }
-        close(I);
     }
-    open(MASTER, "< $master_ini") or WARN("Cannot read $master_ini ! [$!]");
+    open(MASTER, "< $master_ini") or WARN("Cannot read master-ini: $master_ini ! [$!]");
     while(<MASTER>) {print SINI "$_\n";}
     close(MASTER);
 
