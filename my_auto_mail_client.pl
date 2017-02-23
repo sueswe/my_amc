@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.7.1";
+my $VERSION = "0.2.7.2";
 
 ################################################################################
 #
@@ -515,6 +515,7 @@ sub mailit {
         smtp => $SMTP,
         from => $FROM,
         priority => 2,
+        tls_allowed => 0,
         #debug => "c:\\temp\\mail-sender.log",
         on_errors => undef,
     } or FATAL("Can't create the Mail::Sender object: " . $Mail::Sender::Error );
