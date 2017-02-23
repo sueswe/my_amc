@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.7.0";
+my $VERSION = "0.2.7.1";
 
 ################################################################################
 #
@@ -272,8 +272,7 @@ for my $i ( 1 .. $num_messages ) {
                 DEBUG("Do not unzip zip-files");
             } else {
                 DEBUG("Unzip zip-files: $unzip_yn");
-                #FIXME!!
-                unzip_attachment("$anhang","$attachment_dir");
+                unzip_attachment("$attachment_dir");
             }
 
             ####################################################################
@@ -417,31 +416,35 @@ sub save_attachment {
 }
 
 sub unzip_attachment {
-    my ($thisFile,$dir) = @_;
+    my ($dir) = @_;
     chdir("$dir") || ERROR("Cannot chdir to $dir: $!");
-    if ( $thisFile =~ m/zip$/ig ) {
-        INFO "Entpacke $thisFile ...";
-        my $zip = Archive::Zip->new();
-        my $zipName = $thisFile;
-        my $status  = $zip->read($zipName);
-        if ( $status != AZ_OK ) {
-            ERROR "Read of $zipName failed";
-        } else {
-            my @inhalt = $zip->memberNames();
-            foreach (@inhalt) {
-                DEBUG "$_";
-            }
-            foreach my $member ($zip->members) {
-                $zip->extractMember($member);
-                if ( $status != AZ_OK ) {
-                    ERROR "kann $member nicht entpacken";
-                    mailit("Unzip Error: kann $member nicht entpacken.","n/a");
+    # loop files:
+    my @filearray = glob("*");
+    foreach my $thisFile (@filearray) {
+        if ( $thisFile =~ m/zip$/ig ) {
+            INFO "Entpacke $thisFile ...";
+            my $zip = Archive::Zip->new();
+            my $zipName = $thisFile;
+            my $status  = $zip->read($zipName);
+            if ( $status != AZ_OK ) {
+                ERROR "Read of $zipName failed";
+            } else {
+                my @inhalt = $zip->memberNames();
+                foreach (@inhalt) {
+                    DEBUG "$_";
                 }
-            } #foreach member
+                foreach my $member ($zip->members) {
+                    $zip->extractMember($member);
+                    if ( $status != AZ_OK ) {
+                        ERROR "kann $member nicht entpacken";
+                        mailit("Unzip Error: kann $member nicht entpacken.","n/a");
+                    }
+                } #foreach member
+            }
+        } else {
+            WARN "unzip: $thisFile is not a zip-file.";
         }
-    } else {
-        WARN "unzip: $thisFile is not a zip-file.";
-    }
+    } #foreach
 }
 
 sub start_process_action {
