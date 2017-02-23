@@ -4,7 +4,7 @@ my $VERSION = "0.2.6.0";
 
 ################################################################################
 #
-# Copyright (C) 2012-2016  Werner Süß <suess_w@gmx.net>
+# Copyright (C) 2012-2017  Werner Süß <suess_w@gmx.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ our $dateiName;
 ## CONFIGURATIONSBLOCK Beginn ##################################################
 $|=1; #unbuffered
 our (   $ini_dir, $master_ini, $USER, $PW, $POP3HOST, $POP_DEBUG,
-        $pop, $ini, @filename_array, @subject,
+        $pop, @filename_array, @subject,
         $SMTP, $FROM, $TO, $ERROR_RECIPIENT,
         $debug,
     );
@@ -86,27 +86,46 @@ INFO("\n my_auto_mail_client, version $VERSION");
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
-# ini-file is already loaded...but we check it anyway
-#if (! -e $ini_file ) {
-#    ERROR("ini-file not found!");
-#    inform_admin("ini-File not found!");
-#    exit(2)
-#} else {
-#    DEBUG "ini-file found.";
-#}
+################################################################################
+#
+# INI Import
+#
+################################################################################
 
 my @iniFiles = glob($ini_dir . "//" . "*.ini");
 DEBUG("Ini-files: @iniFiles");
-my $ic=1;
-foreach my $i_file (@iniFiles) {
-    my $overlay = Config::IniFiles->new(-file => "$i_file",
-            -import => $ini);
-    $ic += 1;
-}
-INFO("Imported $ic ini-files.");
+my $secret_full_ini = '.fullini';
+
+open(SINI, "> $secret_full_ini") or die("FATAL: Cannot write $secret_full_ini : $! \n");
+
+    foreach my $i_file (@iniFiles) {
+        open(I, "< $i_file") or WARN("Cannot read $i_file : $!");
+        while(<I>) {
+            print SINI "$_ \n";
+        }
+        close(I);
+    }
+    open(MASTER, "< $master_ini") or WARN("Cannot read $master_ini ! [$!]");
+    while(<MASTER>) {print SINI "$_\n";}
+    close(MASTER);
+
+close(SINI);
+
+# load everything:
+my $ini = Config::IniFiles->new(
+    -file => "$secret_full_ini",
+);
 my @iniSections = $ini->Sections; my $s = @iniSections;
 INFO("$s sections loaded.");
+DEBUG("Sections: @iniSections");
 
+
+
+################################################################################
+#
+# OPTIONS
+#
+################################################################################
 
 GetOptions (
     'help|?'            => \my $help,
@@ -116,7 +135,16 @@ if ( defined $help ) {
     usage() && exit(1);
 }
 
-### MAIN #######################################################################
+
+
+
+
+################################################################################
+#
+# M A I N
+#
+################################################################################
+
 my $num_messages = connect_pop();
 if ( $num_messages =~ m/0E0/ig ) {
     INFO "No messages."; exit(1);
@@ -152,12 +180,13 @@ for my $i ( 1 .. $num_messages ) {
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
     $subject = substr($subject,0,15);
     DEBUG("subject cut: $subject");
+
     #
     # read ini:
     #
-
     my @sections = $ini->Sections();
     $notfound_counter = 0;
+
     #
     # for each ini section:
     #
@@ -174,13 +203,11 @@ for my $i ( 1 .. $num_messages ) {
 
         my $unzip_yn = $ini->val($_,'attachment_unzip');
 
-
         #
         # found ini entry:
         #
         if ($subject =~ m/\Q$ini_subject/ig ) {
             DEBUG("Subject found in INI file");
-
             #
             # is your emailadress allowd?
             #
@@ -225,7 +252,9 @@ for my $i ( 1 .. $num_messages ) {
                 $bodyFile = save_body($em,$bodySaveDir);
             }
 
-
+            #
+            # attachments:
+            #
             my $anhang;
             if ( ! defined $attachment_dir ) {
                 DEBUG("Do not save attachments.");
@@ -234,7 +263,9 @@ for my $i ( 1 .. $num_messages ) {
                 $anhang = save_attachment($em,$attachment_dir);
             }
 
-
+            #
+            # auto-unzip
+            #
             if ( ! defined $unzip_yn ) {
                 DEBUG("Do not unzip zip-files");
             } else {
@@ -242,7 +273,9 @@ for my $i ( 1 .. $num_messages ) {
                 unzip_attachment("$anhang","$attachment_dir");
             }
 
-
+            ####################################################################
+            # finaly: the process to start
+            ####################################################################
             my @action = $ini->val($cur_sec,'action');
             DEBUG("fireing up: @action $bodyFile");
             my $externReturncode = start_process_action("@action","$bodyFile");
