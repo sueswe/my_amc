@@ -6,7 +6,8 @@ $debug              = "true";
 #
 # name of the filter file:
 #
-$ini_file           = "filter2.ini";
+$master_ini         = "master.ini";
+$ini_dir            = "c:\\temp\\";
 
 #
 # POP3 username, password and server
@@ -23,8 +24,3 @@ $SMTP               = 'smtp.somewhere.org';
 $FROM               = 'my-amc@somewhere.org';
 $TO                 = 'recipient@somewhere.org';
 $ERROR_RECIPIENT    = 'admin@somewhere.org';
-
-#
-# loading the ini-file. Leave this section unchanged unless you know what u r doing.
-#
-$ini = new Config::IniFiles( -file => $ini_file);
