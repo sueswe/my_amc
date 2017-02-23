@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.6.0";
+my $VERSION = "0.2.7.0";
 
 ################################################################################
 #
@@ -272,6 +272,7 @@ for my $i ( 1 .. $num_messages ) {
                 DEBUG("Do not unzip zip-files");
             } else {
                 DEBUG("Unzip zip-files: $unzip_yn");
+                #FIXME!!
                 unzip_attachment("$anhang","$attachment_dir");
             }
 
@@ -394,20 +395,23 @@ sub save_attachment {
     make_path("$dir");
     my $attachmentFile = "N/A";
     DEBUG "saving attachment to: $dir";
+    my $ac = 1;
     for ( my @parts = $em->parts ) {
         my $contType = $_->content_type;
         if ( $contType =~ m(^multipart/alternative|^multipart/related|^text/plain|^text/html)i ) {
-            #DEBUG("Do not save this content-type as attachment ($contType)");
+            DEBUG("Do not save this content-type as attachment ($contType)");
         } else {
             $attachmentFile = $_->filename;
-            DEBUG("attachmentFile: $dir//$attachmentFile");
-            open my $fh, ">>", $dir."//".$attachmentFile || ERROR("save: $! ")
+
+            DEBUG("attachmentFile: $dir//" . $ac .'_'. $attachmentFile);
+            open my $fh, ">>", $dir."//".$ac .'_'.$attachmentFile || ERROR("save: $! ")
                 && mailit("Problem beim speichern eines Anhangs","$!") && ERROR("while saving attachment: $!\n");
             binmode $fh;
             print $fh $_->body;
             close $fh;
+            $ac += 1;
         }
-    }
+    } #for
     #push(@alle_attachment_namen,$filename);
     return("$dir//$attachmentFile");
 }
