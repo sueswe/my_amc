@@ -14,6 +14,7 @@ before_install:
   - "cpanm File::Path"
   - "cpanm Net::POP3"
   - "cpanm Log::Log4perl"
+  - "cpanm Win32::Console"
 
 script:
   - "perl -c my_auto_mail_client.pl"
