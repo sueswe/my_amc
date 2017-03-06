@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.2.7.1";
+my $VERSION = "0.3.0.0";
 
 ################################################################################
 #
@@ -33,6 +33,9 @@ use File::Path qw(make_path remove_tree);
 use File::Copy;
 use Net::POP3;
 use Log::Log4perl qw(:easy);
+use Win32::Console;
+use Win32::OLE;
+use Encode;
 
 my $workDir = getcwd();
 my $heute = POSIX::strftime('%Y%m%d', localtime);
@@ -180,7 +183,7 @@ for my $i ( 1 .. $num_messages ) {
     }
     INFO("$subject"); $orig_subject = $subject;
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
-    $subject = substr($subject,0,15);
+    $subject = substr($subject,0,25);
     DEBUG("subject cut: $subject");
 
     #
@@ -208,7 +211,7 @@ for my $i ( 1 .. $num_messages ) {
         #
         # found ini entry:
         #
-        if ($subject =~ m/\Q$ini_subject/ig ) {
+        if ($ini_subject =~ m/\Q$subject/ig ) {
             DEBUG("Subject found in INI file");
             #
             # is your emailadress allowd?
@@ -401,7 +404,14 @@ sub save_attachment {
             DEBUG("Do not save this content-type as attachment ($contType)");
         } else {
             $attachmentFile = $_->filename;
-
+            # correct output codepage:
+            Win32::Console::OutputCP( 65001 );
+            # enable unicode support:
+            Win32::OLE->Option(CP => Win32::OLE::CP_UTF8);
+            # see also : http://www.perlmonks.org/?node_id=1162804
+            $attachmentFile = Encode::encode("CP1252", $attachmentFile);
+            # binmode(STDOUT, ":utf8");
+            DEBUG("ContentType is: $contType , and file ist: $attachmentFile ");
             DEBUG("attachmentFile: $dir//" . $ac .'_'. $attachmentFile);
             open my $fh, ">>", $dir."//".$ac .'_'.$attachmentFile || ERROR("save: $! ")
                 && mailit("Problem beim speichern eines Anhangs","$!") && ERROR("while saving attachment: $!\n");
@@ -515,6 +525,7 @@ sub mailit {
         smtp => $SMTP,
         from => $FROM,
         priority => 2,
+        tls_allowed => 0,
         #debug => "c:\\temp\\mail-sender.log",
         on_errors => undef,
     } or FATAL("Can't create the Mail::Sender object: " . $Mail::Sender::Error );
