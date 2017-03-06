@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.0.0";
+my $VERSION = "0.3.1.0";
 
 ################################################################################
 #
@@ -33,9 +33,12 @@ use File::Path qw(make_path remove_tree);
 use File::Copy;
 use Net::POP3;
 use Log::Log4perl qw(:easy);
-use Win32::Console;
-use Win32::OLE;
-use Encode;
+
+if ( $^O =~ m/win/ig ) {
+ use Win32::Console;
+ use Win32::OLE;
+ use Encode;
+}
 
 my $workDir = getcwd();
 my $heute = POSIX::strftime('%Y%m%d', localtime);
@@ -403,14 +406,19 @@ sub save_attachment {
         if ( $contType =~ m(^multipart/alternative|^multipart/related|^text/plain|^text/html)i ) {
             DEBUG("Do not save this content-type as attachment ($contType)");
         } else {
+
             $attachmentFile = $_->filename;
-            # correct output codepage:
-            Win32::Console::OutputCP( 65001 );
-            # enable unicode support:
-            Win32::OLE->Option(CP => Win32::OLE::CP_UTF8);
-            # see also : http://www.perlmonks.org/?node_id=1162804
-            $attachmentFile = Encode::encode("CP1252", $attachmentFile);
-            # binmode(STDOUT, ":utf8");
+
+            if ( $^O =~ m/win/ig ) {
+             # http://i-programmer.info/programming/other-languages/1973-unicode-issues-in-perl.html?start=3
+             # correct output codepage:
+             Win32::Console::OutputCP( 65001 );
+             # enable unicode support:
+             Win32::OLE->Option(CP => Win32::OLE::CP_UTF8);
+             # see also : http://www.perlmonks.org/?node_id=1162804
+             $attachmentFile = Encode::encode("CP1252", $attachmentFile);
+             # binmode(STDOUT, ":utf8");
+            }
             DEBUG("ContentType is: $contType , and file ist: $attachmentFile ");
             DEBUG("attachmentFile: $dir//" . $ac .'_'. $attachmentFile);
             open my $fh, ">>", $dir."//".$ac .'_'.$attachmentFile || ERROR("save: $! ")
