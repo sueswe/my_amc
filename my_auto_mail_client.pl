@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.1.0";
+my $VERSION = "0.3.1.1";
 
 ################################################################################
 #
@@ -186,7 +186,7 @@ for my $i ( 1 .. $num_messages ) {
     }
     INFO("$subject"); $orig_subject = $subject;
     $subject =~ s/\s//ig; $subject =~ s/subject//ig; $subject =~ s/://ig; $subject =~ s/\?//ig;
-    $subject = substr($subject,0,25);
+    $subject = substr($subject,0,60);
     DEBUG("subject cut: $subject");
 
     #
@@ -214,7 +214,7 @@ for my $i ( 1 .. $num_messages ) {
         #
         # found ini entry:
         #
-        if ($ini_subject =~ m/\Q$subject/ig ) {
+        if ($subject =~ m/\Q$ini_subject/ig ) {
             DEBUG("Subject found in INI file");
             #
             # is your emailadress allowd?
