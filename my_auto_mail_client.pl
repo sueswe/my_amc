@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.1.1";
+my $VERSION = "0.3.2.0";
 
 ################################################################################
 #
@@ -34,7 +34,8 @@ use File::Copy;
 use Net::POP3;
 use Log::Log4perl qw(:easy);
 
-if ( $^O =~ m/win/ig ) {
+my $os = $^O;
+if ( $os =~ m/win/i ) {
  use Win32::Console;
  use Win32::OLE;
  use Encode;
@@ -88,7 +89,7 @@ Log::Log4perl->easy_init(
 my $log = get_logger();
 
 INFO("\n my_auto_mail_client, version $VERSION");
-
+DEBUG("OS: $os");
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
@@ -409,7 +410,7 @@ sub save_attachment {
 
             $attachmentFile = $_->filename;
 
-            if ( $^O =~ m/win/ig ) {
+            if ( $os =~ m/win/ig ) {
              # http://i-programmer.info/programming/other-languages/1973-unicode-issues-in-perl.html?start=3
              # correct output codepage:
              Win32::Console::OutputCP( 65001 );
