@@ -58,18 +58,6 @@ my $configFile = 'amc.rc';
 my $timestamp = POSIX::strftime('%Y%m%d-%H%M%S', localtime);
 ## CONFIGURATIONSBLOCK Ende ####################################################
 
-# This loads also the master.ini file:
-for my $file ("$workDir//$configFile")
-{
-    unless (my $return = do $file) {
-        warn "couldn't parse $file: $@" if $@;
-        warn "couldn't do $file: $!"    unless defined $return;
-        warn "couldn't run $file"       unless $return;
-    } else {
-        print("$file loaded.\n");
-    }
-}
-
 my $logLevel = "INFO";
 my $logLayout = "%d %p> %m%n";
 if ( defined $debug ) {
@@ -87,6 +75,20 @@ Log::Log4perl->easy_init(
     }
 );
 my $log = get_logger();
+
+# This loads also the master.ini file:
+for my $file ("$workDir//$configFile")
+{
+    unless (my $return = do $file) {
+        warn "couldn't parse $file: $@" if $@;
+        warn "couldn't do $file: $!"    unless defined $return;
+        warn "couldn't run $file"       unless $return;
+    } else {
+        INFO("$file loaded.\n");
+    }
+}
+
+
 
 INFO("\n my_auto_mail_client, version $VERSION");
 DEBUG("OS: $os");
