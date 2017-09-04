@@ -4,7 +4,8 @@
 ## 0) Intro ##
 
 I wrote this stuff for automation purposes, in combination  
-with a jobcontrol tool. The idea exists, but I needed something more flexible. And I want fully control what's going on.
+with a jobcontrol tool. The idea exists, but I needed something more flexible. And I want full control
+over what's going on.
 
 ## 1) How it should work ##
 
@@ -32,6 +33,10 @@ You need following perl-modules:
   * File::Path
   * File::Copy
   * Net::POP3
+  * Win32::Console;
+  * use Win32::OLE;
+  * use Encode;
+
 
 Install them via cpan.
 
@@ -75,6 +80,31 @@ the my_auto_mail_client.pl file.
 * Section Four: SMTPD server settings.
 
 And that's it.
+
+### 3.2) INI's ###
+
+To configure what should happen, you have to edit the
+master.ini file.
+You can also use a directory and place many individual ini-files
+in it, for example an ini-file for every project.
+
+The ini has to contain at least following filter informations:
+
+from=name@smtp.org
+subject=foo
+action=c:\temp\test_one.cmd
+body_save=c:\mail-directory\
+
+When ever an email comes from name@smtp.org with the
+subject-string foo in any part of the subject,
+then the email will be saved in c:\mail-directory\
+and following command will be started:
+
+    c:\temp\test_one.cmd c:\mail-directory\email-body-file
+
+You can also save the attachments into a special
+directory, and send emails to special recipients, if
+the started process failes.
 
 ## 4.0) Help ##
 

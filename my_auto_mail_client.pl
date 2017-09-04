@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.3.0";
+my $VERSION = "0.3.3.1";
 
 ################################################################################
 #
@@ -198,9 +198,11 @@ for my $i ( 1 .. $num_messages ) {
     my @sections = $ini->Sections();
     $notfound_counter = 0;
 
-    #
+    ############################################################################
     # for each ini section:
-    #
+    # Hier werden die INI Felder ausgelesen und Variablen
+    # entsprechend gespeichert für die weitere Verwendung
+    ############################################################################
     foreach (@sections) {
         my $cur_sec = $_;
         DEBUG("INI-section: $cur_sec ");
@@ -214,10 +216,14 @@ for my $i ( 1 .. $num_messages ) {
 
         my $unzip_yn = $ini->val($_,'attachment_unzip');
 
+        my $fail_email_address = $ini->val($_,'fail_address');
+        my $fail_email_body = $ini->val($_,'fail_body');
+
         #
         # found ini entry:
         #
-        if ($subject =~ m/\Q$ini_subject/ig ) {
+        if ($subject =~ m/\Q$ini_subject/ig )
+        {
             DEBUG("Subject found in INI file");
             #
             # is your emailadress allowd?
@@ -284,6 +290,9 @@ for my $i ( 1 .. $num_messages ) {
                 unzip_attachment("$attachment_dir");
             }
 
+            #
+            # failed email : takes place after process:
+            #
             ####################################################################
             # finaly: the process to start
             ####################################################################
@@ -291,10 +300,22 @@ for my $i ( 1 .. $num_messages ) {
             DEBUG("fireing up: @action $bodyFile");
             my $externReturncode = start_process_action("@action","$bodyFile");
             INFO("Returncode was: $externReturncode");
+
+            #
+            # failed email : takes place after process:
+            #
+            if ($externReturncode -ne 0) {
+                if (defined $fail_email_address && defined $fail_email_body ) {
+                    #$SUBJECT,$MESSAGE,$mailrecipients
+                    mailit("@action failed","$fail_email_body","$fail_email_address");
+                }
+            }
+
             # done.
             $notfound_counter = 0;
             last;
-        } else {
+        }
+        else {
             $notfound_counter += 1;
             DEBUG("notfound_counter: $notfound_counter");
         }
