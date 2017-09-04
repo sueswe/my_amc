@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.2.0";
+my $VERSION = "0.3.3.0";
 
 ################################################################################
 #
@@ -36,9 +36,9 @@ use Log::Log4perl qw(:easy);
 
 my $os = $^O;
 if ( $os =~ m/win/i ) {
- use Win32::Console;
- use Win32::OLE;
- use Encode;
+    use Win32::Console;
+    use Win32::OLE;
+    use Encode;
 }
 
 my $workDir = getcwd();
@@ -412,16 +412,20 @@ sub save_attachment {
 
             $attachmentFile = $_->filename;
 
-            if ( $os =~ m/win/ig ) {
-             # http://i-programmer.info/programming/other-languages/1973-unicode-issues-in-perl.html?start=3
-             # correct output codepage:
-             Win32::Console::OutputCP( 65001 );
-             # enable unicode support:
-             Win32::OLE->Option(CP => Win32::OLE::CP_UTF8);
-             # see also : http://www.perlmonks.org/?node_id=1162804
-             $attachmentFile = Encode::encode("CP1252", $attachmentFile);
-             # binmode(STDOUT, ":utf8");
+            if ( $os =~ m/win/i ) {
+                DEBUG("($ac) Fix the Windows Encoding: OS: $os [$^O]");
+                # http://i-programmer.info/programming/other-languages/1973-unicode-issues-in-perl.html?start=3
+                # correct output codepage:
+                Win32::Console::OutputCP( 65001 );
+                # enable unicode support:
+                Win32::OLE->Option(CP => Win32::OLE::CP_UTF8);
+                # see also : http://www.perlmonks.org/?node_id=1162804
+                $attachmentFile = Encode::encode("CP1252", $attachmentFile);
+                # binmode(STDOUT, ":utf8");
+            } else {
+                DEBUG("($ac) Not in EncodingMode: OS: $os [$^O]");
             }
+
             DEBUG("ContentType is: $contType , and file ist: $attachmentFile ");
             DEBUG("attachmentFile: $dir//" . $ac .'_'. $attachmentFile);
             open my $fh, ">>", $dir."//".$ac .'_'.$attachmentFile || ERROR("save: $! ")
