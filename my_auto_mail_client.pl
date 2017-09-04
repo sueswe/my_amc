@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.3.1";
+my $VERSION = "0.3.3.2";
 
 ################################################################################
 #
@@ -304,7 +304,7 @@ for my $i ( 1 .. $num_messages ) {
             #
             # failed email : takes place after process:
             #
-            if ($externReturncode -ne 0) {
+            if ($externReturncode ne 0) {
                 if (defined $fail_email_address && defined $fail_email_body ) {
                     #$SUBJECT,$MESSAGE,$mailrecipients
                     mailit("@action failed","$fail_email_body","$fail_email_address");
