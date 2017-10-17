@@ -90,10 +90,10 @@ in it, for example an ini-file for every project.
 
 The ini has to contain at least following filter informations:
 
-from=name@smtp.org
-subject=foo
-action=c:\temp\test_one.cmd
-body_save=c:\mail-directory\
+    from=name@smtp.org
+    subject=foo
+    action=c:\temp\test_one.cmd
+    body_save=c:\mail-directory\
 
 When ever an email comes from name@smtp.org with the
 subject-string foo in any part of the subject,
@@ -105,6 +105,19 @@ and following command will be started:
 You can also save the attachments into a special
 directory, and send emails to special recipients, if
 the started process failes.
+
+Description of ini-values:
+
+    from=                   Allowed email-adress
+    subject=                Trigger-subject
+    action=                 What to start
+    body_save=              directory where to save the emails
+    attachment_save_dir=    directory where to save the attachments
+    attachment_unzip=       unzip attachments yes/no
+    fail_address=           adress to send alerts to
+    fail_subject=           alert-subject
+    fail_body=              alert-body-text
+    send_this_log=          logfile to send to the alert-adress
 
 ## 4.0) Help ##
 

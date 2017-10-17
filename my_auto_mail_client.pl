@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.5.0";
+my $VERSION = "0.3.5.1";
 
 ################################################################################
 #
@@ -219,7 +219,10 @@ for my $i ( 1 .. $num_messages ) {
         my $fail_email_address = $ini->val($_,'fail_address');
         my $fail_email_body = $ini->val($_,'fail_body');
         my $fail_email_subject = $ini->val($_,'fail_subject');
-
+        my $send_this_log = $ini->val($_,'send_this_log');
+        if ( -e $send_this_log ) {
+            $logfile = $send_this_log;
+        }
         #
         # found ini entry:
         #
@@ -578,6 +581,7 @@ sub mailit {
         subject => "".$SUBJECT,
     }) or FATAL("Can't open the message: $sender->{'error_msg'}");
     ### FIXME seek logfile ###
+    DEBUG("Logfile: $logfile");
     open my $fh, '<', $logfile;
     seek $fh, -1000, 50;
     my @lines = <$fh>;
