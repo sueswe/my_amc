@@ -121,8 +121,6 @@ Description of ini-values:
 
 ## 4.0) Help ##
 
-If you need help, please open a ticket here on github:
-
+If you need help, please open an issue here on github:
 https://github.com/sueswe/my_amc/issues/new
 
-or just write me an email to: suess_w@gmx.net .
