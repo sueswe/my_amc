@@ -433,7 +433,7 @@ sub save_attachment {
     my $ac = 1;
     for ( my @parts = $em->parts ) {
         my $contType = $_->content_type;
-        if ( $contType =~ m(^multipart/alternative|^multipart/related|^text/plain|^text/html)i ) {
+        if ( $contType =~ m(^multipart/alternative|^multipart/related|^text/html)i ) {
             DEBUG("Do not save this content-type as attachment ($contType)");
         } else {
 
