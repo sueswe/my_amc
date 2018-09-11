@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.5.1";
+my $VERSION = "0.3.5.2";
 
 ################################################################################
 #
@@ -297,6 +297,13 @@ for my $i ( 1 .. $num_messages ) {
             #
             # failed email : takes place after process:
             #
+
+            #
+            # delete email
+            #
+            INFO "Deleting message $i ";
+            $pop->delete($i) || ERROR("Cannot delete message!") && die("ERROR: Cannot delete message!");
+
             ####################################################################
             # finaly: the process to start
             ####################################################################
@@ -340,11 +347,7 @@ for my $i ( 1 .. $num_messages ) {
 
     }
 
-    #
-    # delete email
-    #
-    INFO "Deleting message $i ";
-    $pop->delete($i) || ERROR("Cannot delete message!") && die("ERROR: Cannot delete message!");
+
     INFO "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 
 } #for email $i
