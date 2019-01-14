@@ -1,6 +1,6 @@
 #!perl
 
-my $VERSION = "0.3.5.2";
+my $VERSION = "0.3.5.3";
 
 ################################################################################
 #
@@ -33,14 +33,17 @@ use File::Path qw(make_path remove_tree);
 use File::Copy;
 use Net::POP3;
 use Log::Log4perl qw(:easy);
-
 my $os = $^O;
-if ( $os =~ m/win/i ) {
-    use Win32::Console;
-    use Win32::OLE;
-    use Encode;
+BEGIN
+{
+    my $os = $^O;
+    if ( $os =~ m/win/i ) {
+        require Win32::Console;
+        require Win32::OLE;
+        require Encode;
+    }
 }
-
+DEBUG("OS: $os");
 my $workDir = getcwd();
 my $heute = POSIX::strftime('%Y%m%d', localtime);
 my $logfile = $workDir . "//" . $heute . "-myamc.log";
@@ -91,7 +94,7 @@ for my $file ("$workDir//$configFile")
 
 
 INFO("\n my_auto_mail_client, version $VERSION");
-DEBUG("OS: $os");
+
 chdir("$workDir") || ERROR("Cannot chdir $workDir: $!") && exit(99);
 DEBUG("chdir to $workDir");
 
@@ -219,9 +222,11 @@ for my $i ( 1 .. $num_messages ) {
         my $fail_email_address = $ini->val($_,'fail_address');
         my $fail_email_body = $ini->val($_,'fail_body');
         my $fail_email_subject = $ini->val($_,'fail_subject');
-        my $send_this_log = $ini->val($_,'fail_log');
-        if ( -e $send_this_log ) {
-            $logfile = $send_this_log;
+        if ( defined $ini->val($_,'fail_log') ) {
+            my $send_this_log = $ini->val($_,'fail_log');
+            if ( -e $send_this_log ) {
+                $logfile = $send_this_log;
+            }
         }
         #
         # found ini entry:
@@ -248,7 +253,7 @@ for my $i ( 1 .. $num_messages ) {
             } #foreach
             if ($granted == 0 ) {
                 ERROR("Emailaddress \'$from\' not allowed.");
-                mailit("Forbidden","You are not allowed to trigger this action.",$from);
+                # mailit("Forbidden","You are not allowed to trigger this action.",$from);
                 last;
             }
 
@@ -340,11 +345,12 @@ for my $i ( 1 .. $num_messages ) {
         push(@notfound_email,"$orig_subject");
 
         DEBUG("There was no action triggert for the email from: $from");
-        mailit("Problem: no action found for your email","Hello, \
-        i was unable to find an action for \
-        your email with subject: $subject",$from);
+        #mailit("Problem: no action found for your email","Hello, \
+        #i was unable to find an action for \
+        #your email with subject: $subject",$from);
         DEBUG("@notfound_email");
-
+        INFO "Deleting message $i ";
+        $pop->delete($i) || ERROR("Cannot delete message!") && die("ERROR: Cannot delete message!");
     }
 
 
@@ -441,6 +447,7 @@ sub save_attachment {
         } else {
 
             $attachmentFile = $_->filename;
+
 
             if ( $os =~ m/win/i ) {
                 DEBUG("($ac) Fix the Windows Encoding: OS: $os [$^O]");
